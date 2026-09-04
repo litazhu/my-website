@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宝宝说 · 听音识图（语音版）</title>
+<style>
+  :root {
+    --bg: #fff8f0;
+    --card: #ffffff;
+    --ink: #3a2e39;
+    --muted: #a08a86;
+    --line: #f0e4dc;
+    --accent: #ff8a5c;
+    --shadow: 0 14px 40px rgba(255,138,92,.16), 0 4px 12px rgba(58,46,57,.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #fff8f0 0%, #fff1f5 50%, #f3f6ff 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* nav */
+  .nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 22px; }
+  .nav a {
+    text-decoration: none; font-size: 13px; font-weight: 700; color: var(--muted);
+    padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff;
+    transition: all .15s ease;
+  }
+  .nav a:hover { border-color: #ffd0b8; color: var(--ink); }
+  .nav a.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  header { text-align: center; margin-bottom: 16px; }
+  header .logo {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .3px; margin-bottom: 8px;
+  }
+  header .logo .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+  header h1 { font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
+  header p { color: var(--muted); font-size: 14px; margin-top: 7px; line-height: 1.7; }
+
+  /* mic status bar */
+  .status {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin: 6px auto 18px; max-width: 480px;
+    padding: 12px 18px; border-radius: 16px; background: #fff; border: 1.5px solid var(--line);
+    font-size: 14px; font-weight: 700; color: var(--muted);
+  }
+  .status .dot {
+    width: 12px; height: 12px; border-radius: 50%; background: #d6cfc9; flex-shrink: 0;
+    transition: background .2s ease;
+  }
+  .status.listening .dot { background: #f43f5e; animation: pulse 1.1s ease infinite; }
+  .status.matched .dot { background: #16a34a; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(244,63,94,.45); }
+    70% { box-shadow: 0 0 0 12px rgba(244,63,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(244,63,94,0); }
+  }
+  .status .live { font-weight: 600; color: #c9a894; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* stage */
+  .stage { position: relative; margin: 0 auto; max-width: 480px; }
+  .stage .frame {
+    position: relative; width: 100%; aspect-ratio: 1 / 1;
+    border-radius: 32px; overflow: hidden; background: #fff6ec;
+    box-shadow: var(--shadow); border: 1px solid #fff;
+  }
+  .stage img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transition: opacity .5s ease;
+  }
+  .stage .tag {
+    position: absolute; top: 16px; left: 16px; z-index: 3;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 800; padding: 6px 13px; border-radius: 999px; color: #fff;
+    background: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  }
+
+  .word {
+    text-align: center; margin: 18px 0 4px;
+  }
+  .word .zh { font-size: 46px; font-weight: 800; letter-spacing: 2px; }
+  .word .en { font-size: 26px; color: var(--muted); font-weight: 700; margin-top: 2px; }
+
+  /* controls */
+  .controls { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .btn {
+    border: 1.5px solid var(--line); background: #fff; color: var(--ink);
+    padding: 12px 18px; border-radius: 14px; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all .15s ease; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { border-color: #ffd0b8; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn.mic { background: #fff1e8; color: #e9632f; border-color: #ffd0b8; }
+  .btn.mic.on { background: #ffe4e6; color: #e11d48; border-color: #fecdd3; }
+  .btn.speak { background: #fff1e8; color: #e9632f; border-color: #ffd0b8; }
+  .btn.random { background: #eef2ff; color: #4f46e5; border-color: #c7d2fe; }
+
+  /* chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 24px 0 10px; }
+  .chip {
+    border: 1.5px solid var(--line); background: #fff; color: var(--muted);
+    padding: 8px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; transition: all .15s ease;
+  }
+  .chip:hover { border-color: #ffd0b8; color: var(--ink); transform: translateY(-1px); }
+  .chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  /* word grid (tap fallback) */
+  .grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 6px; }
+  .word-btn {
+    border: 1.5px solid var(--line); background: #fff; color: var(--ink);
+    padding: 9px 13px; border-radius: 12px; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all .15s ease;
+  }
+  .word-btn small { display: block; font-size: 10.5px; color: var(--muted); font-weight: 600; margin-top: 1px; }
+  .word-btn:hover { border-color: #ffd0b8; transform: translateY(-1px); }
+  .word-btn.current { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .word-btn.current small { color: #d8cfe0; }
+
+  footer { text-align: center; margin-top: 26px; font-size: 12.5px; color: #c9b6ae; line-height: 2; }
+  kbd {
+    background: #fff; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 6px; padding: 1px 6px; font-size: 11.5px; font-family: inherit; color: var(--muted);
+  }
+
+  @media (max-width: 560px) {
+    .word .zh { font-size: 40px; }
+    .stage .frame { border-radius: 26px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav">
+    <a href="./index.html">📚 深度学习闪卡</a>
+    <a href="./baby.html">🍼 宝宝 First Words</a>
+    <a class="active" href="./talk.html">🗣️ 宝宝说 · 听音识图</a>
+  </div>
+
+  <header>
+    <div class="logo"><span class="dot"></span>宝宝说 · 语音识字</div>
+    <h1>🗣️ 宝宝说，图片转起来</h1>
+    <p>宝宝说出一个词，画面会不断切换这个词的各种图片<br>直到宝宝说出下一个词 🎉</p>
+  </header>
+
+  <div class="status" id="status">
+    <span class="dot"></span>
+    <span id="statusText">点击「🎤 开始听」试试</span>
+  </div>
+
+  <div class="stage">
+    <div class="frame">
+      <img id="imgA" alt="">
+      <img id="imgB" alt="">
+    </div>
+    <span class="tag" id="tag">动物</span>
+  </div>
+
+  <div class="word">
+    <div class="zh" id="wordZh">狗</div>
+    <div class="en" id="wordEn">Dog</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn mic" id="btnMic">🎤 开始听</button>
+    <button class="btn" id="btnLang">中文 🇨🇳</button>
+    <button class="btn random" id="btnRandom">🔀 换一个</button>
+    <button class="btn speak" id="btnSpeak">🔊 朗读</button>
+  </div>
+
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    <kbd>空格</kbd> 换一个 &nbsp;·&nbsp; <kbd>S</kbd> 朗读 &nbsp;·&nbsp; <kbd>M</kbd> 开关麦克风 &nbsp;·&nbsp; <kbd>L</kbd> 切换语言<br>
+    语音识别需 <b>Chrome 浏览器</b> 并允许麦克风权限
+  </footer>
+</div>
+
+<script>
+const CATS = {
+  animal:  { label: "动物", color: "#f59e0b" },
+  food:    { label: "食物", color: "#ef4444" },
+  body:    { label: "身体", color: "#ec4899" },
+  family:  { label: "家人", color: "#8b5cf6" },
+  toy:     { label: "玩具", color: "#10b981" },
+  color:   { label: "颜色", color: "#f43f5e" },
+  vehicle: { label: "交通", color: "#3b82f6" },
+  nature:  { label: "自然", color: "#22c55e" },
+};
+
+const CARDS = [
+  { c:"animal", img:"imgs/dog.png", zh:"狗", en:"Dog" },
+  { c:"animal", img:"imgs/cat.png", zh:"猫", en:"Cat" },
+  { c:"animal", img:"imgs/cow.png", zh:"牛", en:"Cow" },
+  { c:"animal", img:"imgs/pig.png", zh:"猪", en:"Pig" },
+  { c:"animal", img:"imgs/sheep.png", zh:"羊", en:"Sheep" },
+  { c:"animal", img:"imgs/chicken.png", zh:"鸡", en:"Chicken" },
+  { c:"animal", img:"imgs/duck.png", zh:"鸭", en:"Duck" },
+  { c:"animal", img:"imgs/rabbit.png", zh:"兔子", en:"Rabbit" },
+  { c:"animal", img:"imgs/bear.png", zh:"熊", en:"Bear" },
+  { c:"animal", img:"imgs/elephant.png", zh:"大象", en:"Elephant" },
+  { c:"animal", img:"imgs/fish.png", zh:"鱼", en:"Fish" },
+  { c:"animal", img:"imgs/bird.png", zh:"鸟", en:"Bird" },
+  { c:"animal", img:"imgs/lion.png", zh:"狮子", en:"Lion" },
+  { c:"animal", img:"imgs/monkey.png", zh:"猴子", en:"Monkey" },
+  { c:"animal", img:"imgs/frog.png", zh:"青蛙", en:"Frog" },
+  { c:"animal", img:"imgs/turtle.png", zh:"乌龟", en:"Turtle" },
+  { c:"food", img:"imgs/apple.png", zh:"苹果", en:"Apple" },
+  { c:"food", img:"imgs/banana.png", zh:"香蕉", en:"Banana" },
+  { c:"food", img:"imgs/strawberry.png", zh:"草莓", en:"Strawberry" },
+  { c:"food", img:"imgs/orange.png", zh:"橙子", en:"Orange" },
+  { c:"food", img:"imgs/grape.png", zh:"葡萄", en:"Grape" },
+  { c:"food", img:"imgs/watermelon.png", zh:"西瓜", en:"Watermelon" },
+  { c:"food", img:"imgs/carrot.png", zh:"胡萝卜", en:"Carrot" },
+  { c:"food", img:"imgs/bread.png", zh:"面包", en:"Bread" },
+  { c:"food", img:"imgs/egg.png", zh:"鸡蛋", en:"Egg" },
+  { c:"food", img:"imgs/milk.png", zh:"牛奶", en:"Milk" },
+  { c:"food", img:"imgs/cookie.png", zh:"饼干", en:"Cookie" },
+  { c:"food", img:"imgs/cake.png", zh:"蛋糕", en:"Cake" },
+  { c:"body", img:"imgs/eyes.png", zh:"眼睛", en:"Eyes" },
+  { c:"body", img:"imgs/nose.png", zh:"鼻子", en:"Nose" },
+  { c:"body", img:"imgs/mouth.png", zh:"嘴巴", en:"Mouth" },
+  { c:"body", img:"imgs/ear.png", zh:"耳朵", en:"Ear" },
+  { c:"body", img:"imgs/hand.png", zh:"手", en:"Hand" },
+  { c:"body", img:"imgs/foot.png", zh:"脚", en:"Foot" },
+  { c:"body", img:"imgs/tooth.png", zh:"牙齿", en:"Tooth" },
+  { c:"family", img:"imgs/mommy.png", zh:"妈妈", en:"Mommy" },
+  { c:"family", img:"imgs/daddy.png", zh:"爸爸", en:"Daddy" },
+  { c:"family", img:"imgs/grandma.png", zh:"奶奶", en:"Grandma" },
+  { c:"family", img:"imgs/grandpa.png", zh:"爷爷", en:"Grandpa" },
+  { c:"family", img:"imgs/baby.png", zh:"宝宝", en:"Baby" },
+  { c:"family", img:"imgs/girl.png", zh:"女孩", en:"Girl" },
+  { c:"family", img:"imgs/boy.png", zh:"男孩", en:"Boy" },
+  { c:"toy", img:"imgs/teddy.png", zh:"小熊", en:"Teddy" },
+  { c:"toy", img:"imgs/ball.png", zh:"球", en:"Ball" },
+  { c:"toy", img:"imgs/balloon.png", zh:"气球", en:"Balloon" },
+  { c:"toy", img:"imgs/puzzle.png", zh:"拼图", en:"Puzzle" },
+  { c:"toy", img:"imgs/gift.png", zh:"礼物", en:"Gift" },
+  { c:"color", img:"imgs/red.png", zh:"红色", en:"Red" },
+  { c:"color", img:"imgs/blue.png", zh:"蓝色", en:"Blue" },
+  { c:"color", img:"imgs/green.png", zh:"绿色", en:"Green" },
+  { c:"color", img:"imgs/yellow.png", zh:"黄色", en:"Yellow" },
+  { c:"color", img:"imgs/purple.png", zh:"紫色", en:"Purple" },
+  { c:"color", img:"imgs/orange_color.png", zh:"橙色", en:"Orange" },
+  { c:"vehicle", img:"imgs/car.png", zh:"汽车", en:"Car" },
+  { c:"vehicle", img:"imgs/bus.png", zh:"公交车", en:"Bus" },
+  { c:"vehicle", img:"imgs/train.png", zh:"火车", en:"Train" },
+  { c:"vehicle", img:"imgs/airplane.png", zh:"飞机", en:"Airplane" },
+  { c:"vehicle", img:"imgs/bike.png", zh:"自行车", en:"Bike" },
+  { c:"vehicle", img:"imgs/boat.png", zh:"船", en:"Boat" },
+  { c:"nature", img:"imgs/sun.png", zh:"太阳", en:"Sun" },
+  { c:"nature", img:"imgs/moon.png", zh:"月亮", en:"Moon" },
+  { c:"nature", img:"imgs/star.png", zh:"星星", en:"Star" },
+  { c:"nature", img:"imgs/rainbow.png", zh:"彩虹", en:"Rainbow" },
+  { c:"nature", img:"imgs/flower.png", zh:"花", en:"Flower" },
+  { c:"nature", img:"imgs/tree.png", zh:"树", en:"Tree" },
+  { c:"nature", img:"imgs/rain.png", zh:"雨", en:"Rain" },
+];
+
+// 语音识别别名（按图片文件名索引，补充中文叠词/常见说法）
+const ALIASES = {
+  "imgs/dog.png": ["狗狗","小狗"], "imgs/cat.png": ["猫猫","小猫"],
+  "imgs/cow.png": ["奶牛","牛牛"], "imgs/pig.png": ["猪猪","小猪"],
+  "imgs/sheep.png": ["羊羊","小羊","绵羊"], "imgs/chicken.png": ["鸡鸡","小鸡"],
+  "imgs/duck.png": ["鸭鸭","鸭子","小鸭"], "imgs/rabbit.png": ["兔兔","小白兔"],
+  "imgs/bear.png": ["小熊"], "imgs/elephant.png": ["象"],
+  "imgs/fish.png": ["鱼鱼"], "imgs/bird.png": ["小鸟","鸟鸟"],
+  "imgs/lion.png": ["狮"], "imgs/monkey.png": ["猴","小猴"], "imgs/frog.png": ["蛙"],
+  "imgs/turtle.png": ["龟"], "imgs/apple.png": ["果果"], "imgs/banana.png": ["蕉"],
+  "imgs/strawberry.png": ["莓"], "imgs/orange.png": ["橙","橘子","桔子"],
+  "imgs/grape.png": ["葡萄"], "imgs/watermelon.png": ["西瓜","瓜"], "imgs/carrot.png": ["萝卜"],
+  "imgs/bread.png": ["面包","包"], "imgs/egg.png": ["蛋","蛋蛋"], "imgs/milk.png": ["奶","牛奶"],
+  "imgs/cookie.png": ["饼干","曲奇"], "imgs/cake.png": ["蛋糕"],
+  "imgs/eyes.png": ["眼睛","眼"], "imgs/nose.png": ["鼻子","鼻"], "imgs/mouth.png": ["嘴巴","嘴"],
+  "imgs/ear.png": ["耳朵"], "imgs/hand.png": ["手"], "imgs/foot.png": ["脚","脚脚"],
+  "imgs/tooth.png": ["牙","牙齿","牙牙"], "imgs/mommy.png": ["妈妈","妈咪","娘"],
+  "imgs/daddy.png": ["爸爸","爹","爹地"], "imgs/grandma.png": ["外婆"],
+  "imgs/grandpa.png": ["外公"], "imgs/baby.png": ["宝宝","宝贝"],
+  "imgs/girl.png": ["女孩","姐姐","妹妹"], "imgs/boy.png": ["男孩","哥哥","弟弟"],
+  "imgs/teddy.png": ["泰迪"], "imgs/ball.png": ["球球"], "imgs/balloon.png": ["气球"],
+  "imgs/puzzle.png": ["拼图"], "imgs/gift.png": ["礼物"],
+  "imgs/red.png": ["红色","红"], "imgs/blue.png": ["蓝色","蓝"], "imgs/green.png": ["绿色","绿"],
+  "imgs/yellow.png": ["黄色","黄"], "imgs/purple.png": ["紫色","紫"], "imgs/orange_color.png": ["橙色","橙"],
+  "imgs/car.png": ["汽车","车","车车"], "imgs/bus.png": ["公交车","巴士","公交"], "imgs/train.png": ["火车"],
+  "imgs/airplane.png": ["飞机"], "imgs/bike.png": ["自行车","单车","脚踏车"], "imgs/boat.png": ["船","小船"],
+  "imgs/sun.png": ["太阳","日"], "imgs/moon.png": ["月亮","月"], "imgs/star.png": ["星星","星"],
+  "imgs/rainbow.png": ["彩虹"], "imgs/flower.png": ["花","花花","花朵"], "imgs/tree.png": ["树","树树"],
+  "imgs/rain.png": ["雨","下雨"],
+};
+
+// 为每张卡构建关键词列表
+CARDS.forEach(card => {
+  card.keywords = [card.zh, card.en.toLowerCase()].concat(ALIASES[card.img] || []);
+});
+
+// ---- state ----
+let current = CARDS[0];
+let variants = [];
+let vIdx = 0;
+let cycleTimer = null;
+let currentEl = "A"; // 当前显示的是 A 还是 B
+let listening = false;
+let currentLang = "zh-CN";
+let activeCat = "all";
+let rec = null;
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const $ = id => document.getElementById(id);
+
+function showImage(src) {
+  const el = (currentEl === "A") ? $("imgB") : $("imgA");
+  const old = (currentEl === "A") ? $("imgA") : $("imgB");
+  el.src = src;
+  el.style.opacity = "1";
+  old.style.opacity = "0";
+  currentEl = (currentEl === "A") ? "B" : "A";
+}
+
+function restartCycle() {
+  clearInterval(cycleTimer);
+  cycleTimer = setInterval(() => {
+    vIdx = (vIdx + 1) % variants.length;
+    showImage(variants[vIdx]);
+  }, 1500);
+}
+
+function speakWord(card) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u1 = new SpeechSynthesisUtterance(card.zh);
+  u1.lang = 'zh-CN'; u1.rate = 0.8;
+  const u2 = new SpeechSynthesisUtterance(card.en);
+  u2.lang = 'en-US'; u2.rate = 0.8;
+  u1.onend = () => speechSynthesis.speak(u2);
+  speechSynthesis.speak(u1);
+}
+
+function setWord(card) {
+  current = card;
+  variants = [card.img, card.img.replace('.png','_2.png'), card.img.replace('.png','_3.png'), card.img.replace('.png','_4.png')];
+  variants.forEach(src => { const im = new Image(); im.src = src; });
+  vIdx = 0;
+  showImage(variants[0]);
+  $("wordZh").textContent = card.zh;
+  $("wordEn").textContent = card.en;
+  $("tag").textContent = CATS[card.c].label;
+  $("tag").style.background = CATS[card.c].color;
+  restartCycle();
+  highlightGrid();
+}
+
+function flash(text) {
+  const st = $("statusText");
+  st.textContent = text;
+  $("status").classList.add("matched");
+  setTimeout(() => { if (listening) $("status").classList.remove("matched"); }, 1200);
+}
+
+// ---- word grid ----
+function buildChips() {
+  const chips = $("chips");
+  chips.innerHTML = "";
+  const all = document.createElement("button");
+  all.className = "chip active"; all.textContent = "全部 " + CARDS.length;
+  all.onclick = () => { activeCat = "all"; refreshChips(); renderGrid(); };
+  chips.appendChild(all);
+  Object.keys(CATS).forEach(k => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = CATS[k].label;
+    b.onclick = () => { activeCat = k; refreshChips(); renderGrid(); };
+    chips.appendChild(b);
+  });
+}
+function refreshChips() {
+  const keys = ["all", ...Object.keys(CATS)];
+  [...$("chips").children].forEach((ch, i) => ch.classList.toggle("active", keys[i] === activeCat));
+}
+function renderGrid() {
+  const grid = $("grid");
+  grid.innerHTML = "";
+  const list = activeCat === "all" ? CARDS : CARDS.filter(d => d.c === activeCat);
+  list.forEach(card => {
+    const b = document.createElement("button");
+    b.className = "word-btn";
+    b.innerHTML = card.zh + "<small>" + card.en + "</small>";
+    b.onclick = () => setWord(card);
+    grid.appendChild(b);
+  });
+  highlightGrid();
+}
+function highlightGrid() {
+  [...$("grid").children].forEach((b, i) => {
+    const list = activeCat === "all" ? CARDS : CARDS.filter(d => d.c === activeCat);
+    b.classList.toggle("current", list[i] === current);
+  });
+}
+
+// ---- voice recognition ----
+function initRec() {
+  if (!SR) return false;
+  rec = new SR();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.maxAlternatives = 3;
+  rec.lang = currentLang;
+  rec.onresult = handleResult;
+  rec.onerror = handleError;
+  rec.onend = () => { if (listening) { try { rec.start(); } catch(e){} } };
+  return true;
+}
+
+function matchWord(transcript) {
+  const t = transcript.toLowerCase().replace(/[，。！？、,.!?\s]/g, '');
+  let best = null, bestLen = 0;
+  for (const card of CARDS) {
+    for (const kw of card.keywords) {
+      const k = kw.toLowerCase().replace(/\s/g, '');
+      if (k && t.includes(k) && k.length > bestLen) {
+        best = card; bestLen = k.length;
+      }
+    }
+  }
+  return best;
+}
+
+function handleResult(e) {
+  let final = "", interim = "";
+  for (let i = e.resultIndex; i < e.results.length; i++) {
+    const r = e.results[i];
+    if (r.isFinal) final += r[0].transcript; else interim += r[0].transcript;
+  }
+  if (interim && !final) $("statusText").textContent = "听到：" + interim.trim();
+  if (final) {
+    const matched = matchWord(final);
+    if (matched && matched !== current) {
+      setWord(matched);
+      speakWord(matched);
+      flash("🎉 识别到「" + matched.zh + "」" + matched.en);
+    } else {
+      $("statusText").textContent = "听到：" + final.trim();
+    }
+  }
+}
+
+function handleError(e) {
+  if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+    listening = false; updateMicUI();
+    flash("⚠️ 麦克风权限被拒绝");
+    $("statusText").textContent = "请允许麦克风权限后重试";
+  } else if (e.error === 'no-speech') {
+    if (listening) $("statusText").textContent = "没听清，再说一次～";
+  }
+  // 其他错误静默，onend 会自动重启
+}
+
+function startMic() {
+  if (!SR) { flash("⚠️ 此浏览器不支持语音识别"); return; }
+  if (!rec) initRec();
+  if (!rec) return;
+  rec.lang = currentLang;
+  try { rec.start(); listening = true; updateMicUI(); } catch(e) {}
+}
+function stopMic() {
+  listening = false;
+  if (rec) { try { rec.stop(); } catch(e){} }
+  updateMicUI();
+}
+function updateMicUI() {
+  const b = $("btnMic");
+  b.classList.toggle("on", listening);
+  b.textContent = listening ? "🔴 停止听" : "🎤 开始听";
+  $("status").classList.toggle("listening", listening);
+  if (listening) $("statusText").textContent = "正在聆听… 说一个词吧";
+  else $("statusText").textContent = "点击「🎤 开始听」试试";
+}
+function toggleMic() { listening ? stopMic() : startMic(); }
+function toggleLang() {
+  currentLang = (currentLang === "zh-CN") ? "en-US" : "zh-CN";
+  $("btnLang").textContent = (currentLang === "zh-CN") ? "中文 🇨🇳" : "English 🇺🇸";
+  if (listening && rec) {
+    try { rec.stop(); } catch(e){}
+    rec.lang = currentLang;
+    try { rec.start(); } catch(e){}
+  }
+}
+function randomWord() {
+  const card = CARDS[Math.floor(Math.random() * CARDS.length)];
+  setWord(card);
+  if (!listening) { speakWord(card); }
+}
+
+// ---- events ----
+$("btnMic").addEventListener("click", toggleMic);
+$("btnLang").addEventListener("click", toggleLang);
+$("btnRandom").addEventListener("click", randomWord);
+$("btnSpeak").addEventListener("click", () => speakWord(current));
+
+document.addEventListener("keydown", e => {
+  if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.code === "Space") { e.preventDefault(); randomWord(); }
+  else if (e.key === "s" || e.key === "S") speakWord(current);
+  else if (e.key === "m" || e.key === "M") toggleMic();
+  else if (e.key === "l" || e.key === "L") toggleLang();
+});
+
+// ---- boot ----
+buildChips();
+renderGrid();
+setWord(current);
+</script>
+</body>
+</html>
