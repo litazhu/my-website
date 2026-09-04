@@ -332,15 +332,29 @@ function restartCycle() {
   }, 1500);
 }
 
+function audioId(card) {
+  return card.img.replace(/^imgs\//, '').replace(/\.png$/, '');
+}
 function speakWord(card) {
-  if (!('speechSynthesis' in window)) return;
-  speechSynthesis.cancel();
-  const u1 = new SpeechSynthesisUtterance(card.zh);
-  u1.lang = 'zh-CN'; u1.rate = 0.8;
-  const u2 = new SpeechSynthesisUtterance(card.en);
-  u2.lang = 'en-US'; u2.rate = 0.8;
-  u1.onend = () => speechSynthesis.speak(u2);
-  speechSynthesis.speak(u1);
+  if (window._curAudio) { try { window._curAudio.pause(); } catch(e){} window._curAudio = null; }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  const cn = new Audio("imgs/audio/" + audioId(card) + "_cn.m4a");
+  const en = new Audio("imgs/audio/" + audioId(card) + "_en.m4a");
+  let fellBack = false;
+  const fallback = () => {
+    if (fellBack || !('speechSynthesis' in window)) return;
+    fellBack = true;
+    const u1 = new SpeechSynthesisUtterance(card.zh);
+    u1.lang = 'zh-CN'; u1.rate = 0.8;
+    const u2 = new SpeechSynthesisUtterance(card.en);
+    u2.lang = 'en-US'; u2.rate = 0.8;
+    u1.onend = () => speechSynthesis.speak(u2);
+    speechSynthesis.speak(u1);
+  };
+  window._curAudio = cn;
+  cn.onerror = fallback;
+  cn.onended = () => { window._curAudio = en; en.onerror = fallback; en.play(); };
+  cn.play().catch(fallback);
 }
 
 function setWord(card) {
