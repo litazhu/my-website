@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宝宝学单词 · First Words 闪卡（迪士尼卡通版）</title>
+<style>
+  :root {
+    --bg: #fff8f0;
+    --card: #ffffff;
+    --ink: #3a2e39;
+    --muted: #a08a86;
+    --line: #f0e4dc;
+    --accent: #ff8a5c;
+    --shadow: 0 14px 40px rgba(255,138,92,.16), 0 4px 12px rgba(58,46,57,.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #fff8f0 0%, #fff1f5 50%, #f3f6ff 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 34px 18px 60px; }
+
+  header { text-align: center; margin-bottom: 20px; }
+  header .logo {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .3px; margin-bottom: 10px;
+  }
+  header .logo .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+  header h1 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
+  header p { color: var(--muted); font-size: 14.5px; margin-top: 8px; line-height: 1.7; }
+  .nav { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+  .nav a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 700;
+    text-decoration: none; transition: all .15s ease;
+    border: 1px solid var(--line); color: var(--muted); background: #fff;
+  }
+  .nav a:hover { border-color: #ffc9b5; color: var(--ink); }
+  .nav a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Filter chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 22px 0 6px; }
+  .chip {
+    border: 1.5px solid var(--line); background: #fff; color: var(--muted);
+    padding: 8px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; transition: all .15s ease;
+  }
+  .chip:hover { border-color: #ffd0b8; color: var(--ink); transform: translateY(-1px); }
+  .chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .chip .n { opacity: .55; font-weight: 600; margin-left: 3px; font-size: 12px; }
+
+  /* Progress */
+  .progress-row { display: flex; align-items: center; gap: 12px; margin: 16px 0 20px; }
+  .progress-bar { flex: 1; height: 10px; background: #fbe9de; border-radius: 999px; overflow: hidden; }
+  .progress-bar .fill { height: 100%; background: linear-gradient(90deg, #ffb199, #ff8a5c); border-radius: 999px; transition: width .3s ease; }
+  .counter { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .counter b { color: var(--ink); font-size: 15px; }
+
+  /* Card */
+  .scene { perspective: 1600px; margin: 0 auto; max-width: 560px; }
+  .card {
+    position: relative; width: 100%; height: 420px; cursor: pointer;
+    transform-style: preserve-3d; transition: transform .5s cubic-bezier(.4,.1,.2,1);
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    background: var(--card); border-radius: 30px; box-shadow: var(--shadow);
+    padding: 24px 30px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 1px solid #fff;
+  }
+  .face.back { transform: rotateY(180deg); }
+
+  .face .tag {
+    position: absolute; top: 20px; left: 22px; display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 800; padding: 6px 13px; border-radius: 999px; color: #fff;
+  }
+  .pic {
+    width: 250px; height: 250px; object-fit: cover; border-radius: 26px;
+    box-shadow: 0 10px 24px rgba(58,46,57,.12); margin-bottom: 18px; background: #fff6ec;
+  }
+  .pic-small {
+    width: 112px; height: 112px; object-fit: cover; border-radius: 22px;
+    box-shadow: 0 6px 16px rgba(58,46,57,.10); margin-bottom: 12px; background: #fff6ec;
+  }
+  .zh { font-size: 44px; font-weight: 800; letter-spacing: 2px; }
+  .en { font-size: 56px; font-weight: 800; letter-spacing: 1px; }
+  .en-sub { font-size: 26px; color: var(--muted); font-weight: 600; margin-top: 6px; }
+
+  .face .hint { position: absolute; bottom: 16px; font-size: 12.5px; color: #c9b6ae; }
+
+  /* Controls */
+  .controls { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+  .btn {
+    border: 1.5px solid var(--line); background: #fff; color: var(--ink);
+    padding: 12px 18px; border-radius: 14px; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all .15s ease; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { border-color: #ffd0b8; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .btn.primary:hover { background: #2c222b; }
+  .btn.icon { padding: 12px 15px; font-size: 16px; }
+  .btn.speak { background: #fff1e8; color: #e9632f; border-color: #ffd0b8; font-size: 16px; }
+  .btn.speak:hover { background: #ffe5d6; }
+  .btn.autoplay.on { background: #e8f7ee; color: #16a34a; border-color: #bbf0cd; }
+
+  footer { text-align: center; margin-top: 30px; font-size: 12.5px; color: #c9b6ae; line-height: 1.9; }
+
+  @media (max-width: 560px) {
+    .card { height: 400px; }
+    .pic { width: 220px; height: 220px; }
+    .zh { font-size: 38px; }
+    .en { font-size: 48px; }
+    .face { padding: 22px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="dot"></span>First Words · 宝宝学单词</div>
+    <h1>🍼 宝宝闪卡 · First Words</h1>
+    <p>迪士尼画风卡通图 + 中英双语，点卡片翻面，点 <b>🔊 朗读</b> 学发音<br>开启「自动播放」可让宝宝自己看</p>
+    <div class="nav">
+      <a href="./index.html">📚 深度学习闪卡</a>
+      <a class="active" href="./baby.html">🍼 宝宝 First Words</a>
+    </div>
+  </header>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="progress-row">
+    <div class="progress-bar"><div class="fill" id="bar" style="width:0%"></div></div>
+    <div class="counter" id="counter"></div>
+  </div>
+
+  <div class="scene">
+    <div class="card" id="card">
+      <div class="face front" id="front">
+        <span class="tag" id="tagFront">动物</span>
+        <img class="pic" id="picFront" src="imgs/dog.png" alt="狗">
+        <div class="zh" id="zhFront">狗</div>
+        <div class="hint">点卡片翻面 · 看英文</div>
+      </div>
+      <div class="face back" id="back">
+        <span class="tag" id="tagBack">动物</span>
+        <img class="pic-small" id="picBack" src="imgs/dog.png" alt="狗">
+        <div class="en" id="enBack">Dog</div>
+        <div class="en-sub" id="zhBack">狗</div>
+        <div class="hint">🔊 点朗读 · 听发音</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn icon" id="btnPrev" title="上一张">←</button>
+    <button class="btn primary" id="btnFlip">翻面看英文</button>
+    <button class="btn icon" id="btnNext" title="下一张">→</button>
+    <button class="btn speak" id="btnSpeak">🔊 朗读</button>
+    <button class="btn autoplay" id="btnAuto">▶ 自动播放</button>
+  </div>
+
+  <footer>
+    <kbd>空格</kbd> 翻面 &nbsp;·&nbsp; <kbd>←</kbd>/<kbd>→</kbd> 切换 &nbsp;·&nbsp; <kbd>S</kbd> 朗读 &nbsp;·&nbsp; <kbd>A</kbd> 自动播放
+  </footer>
+</div>
+
+<script>
+const CATS = {
+  animal:  { label: "动物", color: "#f59e0b" },
+  food:    { label: "食物", color: "#ef4444" },
+  body:    { label: "身体", color: "#ec4899" },
+  family:  { label: "家人", color: "#8b5cf6" },
+  toy:     { label: "玩具", color: "#10b981" },
+  color:   { label: "颜色", color: "#f43f5e" },
+  vehicle: { label: "交通", color: "#3b82f6" },
+  nature:  { label: "自然", color: "#22c55e" },
+};
+
+const CARDS = [
+  // 动物
+  { c:"animal", img:"imgs/dog.png", zh:"狗", en:"Dog" },
+  { c:"animal", img:"imgs/cat.png", zh:"猫", en:"Cat" },
+  { c:"animal", img:"imgs/cow.png", zh:"牛", en:"Cow" },
+  { c:"animal", img:"imgs/pig.png", zh:"猪", en:"Pig" },
+  { c:"animal", img:"imgs/sheep.png", zh:"羊", en:"Sheep" },
+  { c:"animal", img:"imgs/chicken.png", zh:"鸡", en:"Chicken" },
+  { c:"animal", img:"imgs/duck.png", zh:"鸭", en:"Duck" },
+  { c:"animal", img:"imgs/rabbit.png", zh:"兔子", en:"Rabbit" },
+  { c:"animal", img:"imgs/bear.png", zh:"熊", en:"Bear" },
+  { c:"animal", img:"imgs/elephant.png", zh:"大象", en:"Elephant" },
+  { c:"animal", img:"imgs/fish.png", zh:"鱼", en:"Fish" },
+  { c:"animal", img:"imgs/bird.png", zh:"鸟", en:"Bird" },
+  { c:"animal", img:"imgs/lion.png", zh:"狮子", en:"Lion" },
+  { c:"animal", img:"imgs/monkey.png", zh:"猴子", en:"Monkey" },
+  { c:"animal", img:"imgs/frog.png", zh:"青蛙", en:"Frog" },
+  { c:"animal", img:"imgs/turtle.png", zh:"乌龟", en:"Turtle" },
+  // 食物
+  { c:"food", img:"imgs/apple.png", zh:"苹果", en:"Apple" },
+  { c:"food", img:"imgs/banana.png", zh:"香蕉", en:"Banana" },
+  { c:"food", img:"imgs/strawberry.png", zh:"草莓", en:"Strawberry" },
+  { c:"food", img:"imgs/orange.png", zh:"橙子", en:"Orange" },
+  { c:"food", img:"imgs/grape.png", zh:"葡萄", en:"Grape" },
+  { c:"food", img:"imgs/watermelon.png", zh:"西瓜", en:"Watermelon" },
+  { c:"food", img:"imgs/carrot.png", zh:"胡萝卜", en:"Carrot" },
+  { c:"food", img:"imgs/bread.png", zh:"面包", en:"Bread" },
+  { c:"food", img:"imgs/egg.png", zh:"鸡蛋", en:"Egg" },
+  { c:"food", img:"imgs/milk.png", zh:"牛奶", en:"Milk" },
+  { c:"food", img:"imgs/cookie.png", zh:"饼干", en:"Cookie" },
+  { c:"food", img:"imgs/cake.png", zh:"蛋糕", en:"Cake" },
+  // 身体
+  { c:"body", img:"imgs/eyes.png", zh:"眼睛", en:"Eyes" },
+  { c:"body", img:"imgs/nose.png", zh:"鼻子", en:"Nose" },
+  { c:"body", img:"imgs/mouth.png", zh:"嘴巴", en:"Mouth" },
+  { c:"body", img:"imgs/ear.png", zh:"耳朵", en:"Ear" },
+  { c:"body", img:"imgs/hand.png", zh:"手", en:"Hand" },
+  { c:"body", img:"imgs/foot.png", zh:"脚", en:"Foot" },
+  { c:"body", img:"imgs/tooth.png", zh:"牙齿", en:"Tooth" },
+  // 家人
+  { c:"family", img:"imgs/mommy.png", zh:"妈妈", en:"Mommy" },
+  { c:"family", img:"imgs/daddy.png", zh:"爸爸", en:"Daddy" },
+  { c:"family", img:"imgs/grandma.png", zh:"奶奶", en:"Grandma" },
+  { c:"family", img:"imgs/grandpa.png", zh:"爷爷", en:"Grandpa" },
+  { c:"family", img:"imgs/baby.png", zh:"宝宝", en:"Baby" },
+  { c:"family", img:"imgs/girl.png", zh:"女孩", en:"Girl" },
+  { c:"family", img:"imgs/boy.png", zh:"男孩", en:"Boy" },
+  // 玩具
+  { c:"toy", img:"imgs/teddy.png", zh:"小熊", en:"Teddy" },
+  { c:"toy", img:"imgs/ball.png", zh:"球", en:"Ball" },
+  { c:"toy", img:"imgs/balloon.png", zh:"气球", en:"Balloon" },
+  { c:"toy", img:"imgs/puzzle.png", zh:"拼图", en:"Puzzle" },
+  { c:"toy", img:"imgs/gift.png", zh:"礼物", en:"Gift" },
+  // 颜色
+  { c:"color", img:"imgs/red.png", zh:"红色", en:"Red" },
+  { c:"color", img:"imgs/blue.png", zh:"蓝色", en:"Blue" },
+  { c:"color", img:"imgs/green.png", zh:"绿色", en:"Green" },
+  { c:"color", img:"imgs/yellow.png", zh:"黄色", en:"Yellow" },
+  { c:"color", img:"imgs/purple.png", zh:"紫色", en:"Purple" },
+  { c:"color", img:"imgs/orange_color.png", zh:"橙色", en:"Orange" },
+  // 交通
+  { c:"vehicle", img:"imgs/car.png", zh:"汽车", en:"Car" },
+  { c:"vehicle", img:"imgs/bus.png", zh:"公交车", en:"Bus" },
+  { c:"vehicle", img:"imgs/train.png", zh:"火车", en:"Train" },
+  { c:"vehicle", img:"imgs/airplane.png", zh:"飞机", en:"Airplane" },
+  { c:"vehicle", img:"imgs/bike.png", zh:"自行车", en:"Bike" },
+  { c:"vehicle", img:"imgs/boat.png", zh:"船", en:"Boat" },
+  // 自然
+  { c:"nature", img:"imgs/sun.png", zh:"太阳", en:"Sun" },
+  { c:"nature", img:"imgs/moon.png", zh:"月亮", en:"Moon" },
+  { c:"nature", img:"imgs/star.png", zh:"星星", en:"Star" },
+  { c:"nature", img:"imgs/rainbow.png", zh:"彩虹", en:"Rainbow" },
+  { c:"nature", img:"imgs/flower.png", zh:"花", en:"Flower" },
+  { c:"nature", img:"imgs/tree.png", zh:"树", en:"Tree" },
+  { c:"nature", img:"imgs/rain.png", zh:"雨", en:"Rain" },
+];
+
+// ---- state ----
+let deck = CARDS.slice();
+let idx = 0;
+let flipped = false;
+let activeCat = "all";
+let autoTimer = null;
+let autoOn = false;
+
+const $ = id => document.getElementById(id);
+const card = $("card");
+const bar = $("bar");
+
+// 预加载相邻图片，翻卡更流畅
+const preload = new Set();
+function preloadAround(i) {
+  deck.forEach((_, k) => {
+    if (Math.abs(k - i) <= 2) {
+      const src = deck[k].img;
+      if (!preload.has(src)) {
+        preload.add(src);
+        const im = new Image();
+        im.src = src;
+      }
+    }
+  });
+}
+
+function buildChips() {
+  const counts = {};
+  CARDS.forEach(d => counts[d.c] = (counts[d.c] || 0) + 1);
+  const chips = $("chips");
+  chips.innerHTML = "";
+  const all = document.createElement("button");
+  all.className = "chip active"; all.textContent = `全部 ${CARDS.length}`;
+  all.onclick = () => setCat("all");
+  chips.appendChild(all);
+  Object.keys(CATS).forEach(k => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.innerHTML = `${CATS[k].label} <span class="n">${counts[k] || 0}</span>`;
+    b.onclick = () => setCat(k);
+    chips.appendChild(b);
+  });
+}
+
+function setCat(cat) {
+  activeCat = cat;
+  deck = cat === "all" ? CARDS.slice() : CARDS.filter(d => d.c === cat);
+  idx = 0; flipped = false;
+  [...$("chips").children].forEach((ch, i) => {
+    const keys = ["all", ...Object.keys(CATS)];
+    ch.classList.toggle("active", keys[i] === cat);
+  });
+  preload.clear();
+  render();
+}
+
+function current() { return deck[idx]; }
+
+function render() {
+  if (!deck.length) {
+    $("front").style.display = "none";
+    $("back").style.display = "none";
+    $("counter").innerHTML = "";
+    bar.style.width = "0%";
+    return;
+  }
+  $("front").style.display = "";
+  $("back").style.display = "";
+  const d = current();
+  const cat = CATS[d.c];
+  $("tagFront").textContent = cat.label;
+  $("tagFront").style.background = cat.color;
+  $("tagBack").textContent = cat.label;
+  $("tagBack").style.background = cat.color;
+  $("picFront").src = d.img;
+  $("picFront").alt = d.zh;
+  $("zhFront").textContent = d.zh;
+  $("picBack").src = d.img;
+  $("picBack").alt = d.zh;
+  $("enBack").textContent = d.en;
+  $("zhBack").textContent = d.zh;
+  card.classList.toggle("flipped", flipped);
+  $("btnFlip").textContent = flipped ? "← 看回图形" : "翻面看英文";
+
+  const total = deck.length;
+  $("counter").innerHTML = `<b>${idx + 1}</b> / ${total}`;
+  bar.style.width = ((idx + 1) / total * 100) + "%";
+  preloadAround(idx);
+}
+
+function flip() {
+  if (!deck.length) return;
+  flipped = !flipped;
+  card.classList.toggle("flipped", flipped);
+  $("btnFlip").textContent = flipped ? "← 看回图形" : "翻面看英文";
+}
+
+function go(dir) {
+  if (!deck.length) return;
+  idx = (idx + dir + deck.length) % deck.length;
+  flipped = false;
+  render();
+  if (autoOn) speakBoth();
+}
+
+function speak(text, lang) {
+  if (!('speechSynthesis' in window)) return false;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;
+  u.rate = 0.85;
+  speechSynthesis.speak(u);
+  return true;
+}
+
+function speakBoth() {
+  const d = current();
+  if (!d || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u1 = new SpeechSynthesisUtterance(d.zh);
+  u1.lang = 'zh-CN';
+  u1.rate = 0.85;
+  const u2 = new SpeechSynthesisUtterance(d.en);
+  u2.lang = 'en-US';
+  u2.rate = 0.85;
+  u1.onend = () => speechSynthesis.speak(u2);
+  speechSynthesis.speak(u1);
+}
+
+function toggleAuto() {
+  autoOn = !autoOn;
+  const btn = $("btnAuto");
+  btn.classList.toggle("on", autoOn);
+  btn.textContent = autoOn ? "⏸ 停止自动播放" : "▶ 自动播放";
+  if (autoOn) {
+    speakBoth();
+    autoTimer = setInterval(() => { go(1); }, 3200);
+  } else {
+    clearInterval(autoTimer);
+    autoTimer = null;
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+  }
+}
+
+// events
+card.addEventListener("click", flip);
+$("btnFlip").addEventListener("click", e => { e.stopPropagation(); flip(); });
+$("btnPrev").addEventListener("click", () => go(-1));
+$("btnNext").addEventListener("click", () => go(1));
+$("btnSpeak").addEventListener("click", speakBoth);
+$("btnAuto").addEventListener("click", toggleAuto);
+
+document.addEventListener("keydown", e => {
+  if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.code === "Space") { e.preventDefault(); flip(); }
+  else if (e.key === "ArrowLeft") go(-1);
+  else if (e.key === "ArrowRight") go(1);
+  else if (e.key === "s" || e.key === "S") speakBoth();
+  else if (e.key === "a" || e.key === "A") toggleAuto();
+});
+
+buildChips();
+render();
+</script>
+</body>
+</html>

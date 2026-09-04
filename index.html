@@ -36,6 +36,15 @@
   header h1 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
   header p { color: var(--muted); font-size: 14.5px; margin-top: 8px; line-height: 1.6; }
   header p a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .nav { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+  .nav a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 700;
+    text-decoration: none; transition: all .15s ease;
+    border: 1px solid var(--line); color: var(--muted); background: #fff;
+  }
+  .nav a:hover { border-color: #c7cbf4; color: var(--ink); }
+  .nav a.active { background: var(--ink); color: #fff; border-color: var(--ink); }
 
   /* Filter chips */
   .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 26px 0 8px; }
@@ -134,6 +143,10 @@
     <div class="logo"><span class="dot"></span>aiquizzes · fast.ai</div>
     <h1>深度学习闪卡体验</h1>
     <p>79 张问答卡，来自 <a href="https://github.com/radekosmulski/aiquizzes-anki" target="_blank">aiquizzes-anki</a><br>点击卡片翻面查看答案 · 用「认识 / 还不熟」跟踪掌握度</p>
+    <div class="nav">
+      <a class="active" href="./index.html">📚 深度学习闪卡</a>
+      <a href="./baby.html">🍼 宝宝 First Words</a>
+    </div>
   </header>
 
   <div class="chips" id="chips"></div>
