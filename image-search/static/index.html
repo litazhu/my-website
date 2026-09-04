@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>以图搜地点 · 深度学习 + Google Maps</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --border:#e4e7ec; --text:#1a1d23;
+    --muted:#6b7280; --primary:#2f6bff; --primary-dark:#1e4fd6;
+    --accent:#ff6b6b; --radius:14px; --shadow:0 6px 24px rgba(16,24,40,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  header{background:linear-gradient(135deg,#2f6bff,#7c4dff);color:#fff;padding:22px 28px;display:flex;align-items:center;gap:14px}
+  header h1{font-size:20px;font-weight:700;letter-spacing:.5px}
+  header p{font-size:13px;opacity:.9;margin-top:3px}
+  .logo{width:42px;height:42px;background:rgba(255,255,255,.18);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+  .wrap{display:grid;grid-template-columns:380px 1fr;gap:20px;padding:22px 28px;max-width:1400px;margin:0 auto}
+  @media(max-width:960px){.wrap{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+  .panel h2{font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .panel h2 .tag{font-size:11px;background:#eef2ff;color:var(--primary);padding:2px 8px;border-radius:20px;font-weight:600}
+  /* 上传区 */
+  .drop{border:2px dashed var(--border);border-radius:12px;padding:34px 20px;text-align:center;cursor:pointer;transition:.2s;background:#fafbfc}
+  .drop:hover,.drop.drag{border-color:var(--primary);background:#f0f5ff}
+  .drop .icon{font-size:36px;margin-bottom:10px}
+  .drop .main{font-size:15px;font-weight:600}
+  .drop .sub{font-size:12px;color:var(--muted);margin-top:6px}
+  .drop input{display:none}
+  #preview{display:none;margin-top:14px}
+  #preview img{width:100%;border-radius:12px;max-height:220px;object-fit:cover;border:1px solid var(--border)}
+  /* 预测结果 */
+  #preds{margin-top:16px}
+  .pred-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.15s;background:#fff}
+  .pred-row:hover{border-color:var(--primary);box-shadow:0 2px 10px rgba(47,107,255,.12)}
+  .pred-row.active{border-color:var(--primary);background:#eef4ff}
+  .pred-row .lbl{flex:1;font-size:14px;font-weight:600}
+  .pred-row .pct{font-size:13px;color:var(--primary);font-weight:700}
+  .bar{height:6px;background:#eef0f3;border-radius:3px;overflow:hidden;margin-top:4px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#2f6bff,#7c4dff);border-radius:3px}
+  /* 搜索参数 */
+  .filters{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+  .filters label{font-size:12px;color:var(--muted);margin-bottom:-6px}
+  .filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none}
+  .filters input:focus,.filters select:focus{border-color:var(--primary)}
+  .btn{width:100%;padding:12px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:.2s;margin-top:6px}
+  .btn:hover{background:var(--primary-dark)}
+  .btn:disabled{background:#b8c4e0;cursor:not-allowed}
+  .hint{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
+  /* 右侧地图 */
+  #map{width:100%;height:420px;border-radius:12px;border:1px solid var(--border)}
+  .map-wrap{position:relative}
+  #mapStatus{position:absolute;bottom:12px;left:12px;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;color:var(--muted);box-shadow:var(--shadow);display:none}
+  /* 结果网格 */
+  .results{margin-top:20px}
+  .results h2{font-size:15px;margin-bottom:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .card{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff;transition:.15s}
+  .card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+  .card img{width:100%;height:150px;object-fit:cover;background:#eef0f3;display:block}
+  .card .body{padding:12px}
+  .card .name{font-size:14px;font-weight:600;margin-bottom:5px;line-height:1.35}
+  .card .addr{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.4}
+  .card .coord{font-size:11px;color:var(--primary);font-family:ui-monospace,monospace}
+  .card .rating{font-size:12px;color:#f59e0b;margin-top:4px}
+  .card a{display:inline-block;margin-top:8px;font-size:12px;color:var(--primary);text-decoration:none;font-weight:600}
+  .card a:hover{text-decoration:underline}
+  .empty{text-align:center;color:var(--muted);padding:40px;font-size:14px}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-3px;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .error{background:#fff1f0;border:1px solid #ffccc7;color:#cf1322;padding:12px 14px;border-radius:10px;font-size:13px;margin-top:12px;display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🗺️</div>
+  <div>
+    <h1>以图搜地点</h1>
+    <p>深度学习场景识别（CLIP 视觉模型） + Google Maps 相似地点检索</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- 左栏：上传 + 分类 + 参数 -->
+  <div>
+    <div class="panel">
+      <h2>① 上传图片 <span class="tag">Deep Learning</span></h2>
+      <div class="drop" id="drop">
+        <div class="icon">🖼️</div>
+        <div class="main">点击或拖拽图片到此处</div>
+        <div class="sub">支持 JPG / PNG，模型将识别场景类型</div>
+        <input type="file" id="fileInput" accept="image/*" />
+      </div>
+      <div id="preview"><img id="previewImg" alt="预览" /></div>
+
+      <div id="preds" style="display:none">
+        <h2 style="margin-top:18px">识别结果（点击切换搜索词）</h2>
+        <div id="predList"></div>
+      </div>
+
+      <div class="filters">
+        <h2>② 搜索参数（可选）</h2>
+        <label>搜索词（留空则用识别结果）</label>
+        <input type="text" id="queryInput" placeholder="例如：海滩、雪山、古建筑…" />
+        <label>位置 / 城市（可选，如 深圳 或 22.54,114.05）</label>
+        <input type="text" id="locInput" placeholder="限定搜索范围，留空则全球搜索" />
+        <label>搜索半径（米，配合位置使用；城市名未填则默认 50km）</label>
+        <input type="number" id="radiusInput" placeholder="如 5000（100~50000）" min="100" max="50000" step="100" />
+        <label>返回结果数量（限定范围后可拉满 60，全球搜索上限 20）</label>
+        <select id="limitInput">
+          <option value="20" selected>20 个（快）</option>
+          <option value="40">40 个（中等）</option>
+          <option value="60">60 个（最多）</option>
+        </select>
+      </div>
+
+      <button class="btn" id="searchBtn" disabled>🔍 搜索相似地点</button>
+      <div class="error" id="errBox"></div>
+      <div class="hint">💡 上传图片 → CLIP 识别场景 → 映射为 Google Places 搜索词 → 返回匹配地点的坐标与实景照片。填「位置」（城市名或坐标）可精确限定范围并返回更多地点；留空则全球搜索。Google 服务需能访问外网。</div>
+    </div>
+  </div>
+
+  <!-- 右栏：地图 + 结果 -->
+  <div>
+    <div class="panel">
+      <h2>③ 相似地点地图 <span class="tag" id="countTag">0 个结果</span></h2>
+      <div class="map-wrap">
+        <div id="map"></div>
+        <div id="mapStatus"></div>
+      </div>
+    </div>
+    <div class="panel results">
+      <h2>④ 结果列表 <span class="tag" id="queryTag">等待搜索</span></h2>
+      <div class="grid" id="resultGrid"></div>
+      <div class="empty" id="emptyBox">上传图片并点击「搜索相似地点」开始</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = "__MAPS_KEY__";
+let map = null, markers = [];
+let currentFile = null;
+let predictions = [];
+let activeLabel = null;
+
+const $ = id => document.getElementById(id);
+
+/* ---------- 上传 ---------- */
+const drop = $("drop"), fileInput = $("fileInput");
+drop.addEventListener("click", () => fileInput.click());
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("drag"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+drop.addEventListener("drop", e => {
+  e.preventDefault(); drop.classList.remove("drag");
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener("change", () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
+
+function handleFile(f){
+  if(!f.type.startsWith("image/")){ showError("请上传图片文件"); return; }
+  currentFile = f;
+  const reader = new FileReader();
+  reader.onload = e => { $("previewImg").src = e.target.result; $("preview").style.display = "block"; };
+  reader.readAsDataURL(f);
+  $("searchBtn").disabled = false;
+  $("errBox").style.display = "none";
+}
+
+/* ---------- 搜索 ---------- */
+$("searchBtn").addEventListener("click", doSearch);
+
+async function doSearch(){
+  if(!currentFile){ showError("请先上传图片"); return; }
+  const btn = $("searchBtn");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>识别与搜索中…';
+  $("errBox").style.display = "none";
+  const fd = new FormData();
+  fd.append("file", currentFile);
+  const q = $("queryInput").value.trim();
+  const loc = $("locInput").value.trim();
+  const r = $("radiusInput").value.trim();
+  const lim = $("limitInput").value;
+  if(q) fd.append("query", q);
+  if(loc) fd.append("location", loc);
+  if(r) fd.append("radius", r);
+  fd.append("limit", lim);
+
+  try{
+    const resp = await fetch("/api/search", { method:"POST", body:fd });
+    const data = await resp.json();
+    if(!resp.ok){ showError(data.error || "请求失败"); return; }
+    predictions = data.predictions || [];
+    renderPreds();
+    renderResults(data.places || [], data.search_query);
+  }catch(err){
+    showError("网络或服务错误：" + err.message);
+  }finally{
+    btn.disabled = false; btn.innerHTML = "🔍 搜索相似地点";
+  }
+}
+
+/* ---------- 渲染预测 ---------- */
+function renderPreds(){
+  const box = $("preds");
+  if(!predictions.length){ box.style.display = "none"; return; }
+  box.style.display = "block";
+  const list = $("predList");
+  list.innerHTML = "";
+  predictions.forEach(p => {
+    const row = document.createElement("div");
+    row.className = "pred-row" + (p.label_en === activeLabel ? " active" : "");
+    row.innerHTML = `
+      <div style="flex:1">
+        <div class="lbl">${escapeHtml(p.label)} <span style="color:var(--muted);font-weight:400;font-size:12px">${escapeHtml(p.label_en)}</span></div>
+        <div class="bar"><i style="width:${(p.prob*100).toFixed(1)}%"></i></div>
+      </div>
+      <div class="pct">${(p.prob*100).toFixed(1)}%</div>`;
+    row.addEventListener("click", () => { activeLabel = p.label_en; $("queryInput").value = p.label_en; renderPreds(); });
+    list.appendChild(row);
+  });
+}
+
+/* ---------- 渲染结果 ---------- */
+function renderResults(places, query){
+  $("queryTag").textContent = "搜索词：" + query;
+  $("countTag").textContent = places.length + " 个结果";
+  const grid = $("resultGrid");
+  grid.innerHTML = "";
+  $("emptyBox").style.display = places.length ? "none" : "block";
+  if(places.length) $("emptyBox").textContent = "未找到匹配地点";
+  clearMarkers();
+  const bounds = new google.maps.LatLngBounds();
+  places.forEach(p => {
+    grid.appendChild(buildCard(p));
+    if(p.lat != null && p.lng != null){
+      const pos = {lat:p.lat, lng:p.lng};
+      const m = new google.maps.Marker({ position:pos, map, title:p.name });
+      m.addListener("click", () => {
+        new google.maps.InfoWindow({ content:`<strong>${escapeHtml(p.name)}</strong><br>${escapeHtml(p.address)}` }).open(map, m);
+      });
+      markers.push(m);
+      bounds.extend(pos);
+    }
+  });
+  if(markers.length){
+    map.fitBounds(bounds);
+    if(markers.length === 1) map.setZoom(14);
+  }
+}
+
+function buildCard(p){
+  const card = document.createElement("div");
+  card.className = "card";
+  const img = p.photo_url
+    ? `<img src="${p.photo_url}" loading="lazy" onerror="this.style.display='none'" alt="${escapeHtml(p.name)}" />`
+    : `<div style="height:150px;background:#eef0f3;display:flex;align-items:center;justify-content:center;color:#9aa1ab;font-size:13px">无图片</div>`;
+  const rating = p.rating ? `<div class="rating">⭐ ${p.rating}${p.rating_count ? ' · ' + p.rating_count + ' 评价' : ''}</div>` : "";
+  const coord = (p.lat != null && p.lng != null) ? `<div class="coord">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>` : "";
+  card.innerHTML = `${img}<div class="body">
+    <div class="name">${escapeHtml(p.name)}</div>
+    <div class="addr">${escapeHtml(p.address)}</div>
+    ${coord}${rating}
+    ${p.maps_url ? `<a href="${p.maps_url}" target="_blank">在 Google 地图打开 ↗</a>` : ""}
+  </div>`;
+  return card;
+}
+
+function clearMarkers(){ markers.forEach(m => m.setMap(null)); markers = []; }
+
+function showError(msg){ const b = $("errBox"); b.textContent = "⚠️ " + msg; b.style.display = "block"; }
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------- 地图初始化 ---------- */
+function initMap(){
+  map = new google.maps.Map($("map"), { center:{lat:35, lng:105}, zoom:3, mapTypeControl:true });
+}
+window.initMap = initMap;
+</script>
+<script>
+  if(!window.google){
+    const st = $("mapStatus");
+    st.style.display = "block";
+    st.textContent = "⚠️ Google Maps JS API 未加载（可能未启用或网络受限），仍可查看下方结果列表";
+  }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=__MAPS_KEY__&callback=initMap"></script>
+</body>
+</html>
