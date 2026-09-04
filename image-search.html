@@ -12,8 +12,6 @@
     --muted: #6b7280;
     --line: #e5e7eb;
     --accent: #6366f1;
-    --green: #16a34a;
-    --red: #e11d48;
     --shadow: 0 10px 30px rgba(30,36,48,.08), 0 2px 8px rgba(30,36,48,.05);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,7 +22,7 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 32px 20px 60px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 60px; }
 
   header { text-align: center; margin-bottom: 22px; }
   header .logo {
@@ -45,23 +43,19 @@
   .nav a:hover { border-color: #c7cbf4; color: var(--ink); }
   .nav a.active { background: var(--ink); color: #fff; border-color: var(--ink); }
 
-  /* layout */
-  .cols { display: grid; grid-template-columns: 380px 1fr; gap: 18px; align-items: start; }
-  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
-
   .panel {
     background: var(--card); border: 1px solid var(--line); border-radius: 18px;
-    box-shadow: var(--shadow); padding: 18px;
+    box-shadow: var(--shadow); padding: 20px; margin-bottom: 18px;
   }
-  .panel h2 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .panel h2 { font-size: 15px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .panel h2 .tag {
     font-size: 11px; background: #eef2ff; color: var(--accent);
-    padding: 2px 9px; border-radius: 20px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px; font-weight: 600;
   }
 
   /* 模型状态 */
   #modelBox {
-    display: none; margin-bottom: 14px; padding: 13px 15px; border-radius: 12px;
+    display: none; margin-top: 14px; padding: 13px 15px; border-radius: 12px;
     background: #eef2ff; border: 1px solid #c7cbf4; font-size: 13px; line-height: 1.6;
   }
   #modelBox.loading { background: #eef2ff; }
@@ -72,7 +66,7 @@
 
   /* 上传区 */
   .drop {
-    border: 2px dashed var(--line); border-radius: 12px; padding: 28px 18px;
+    border: 2px dashed var(--line); border-radius: 12px; padding: 30px 18px;
     text-align: center; cursor: pointer; transition: .2s; background: #fafbfc;
   }
   .drop:hover, .drop.drag { border-color: var(--accent); background: #f0f5ff; }
@@ -81,72 +75,30 @@
   .drop .sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
   .drop input { display: none; }
   #preview { display: none; margin-top: 12px; }
-  #preview img { width: 100%; border-radius: 12px; max-height: 200px; object-fit: cover; border: 1px solid var(--line); }
+  #preview img { width: 100%; border-radius: 12px; max-height: 220px; object-fit: cover; border: 1px solid var(--line); }
 
-  /* 预测结果 */
-  #preds { margin-top: 14px; }
-  #preds h2 { margin-top: 16px; }
-  .pred-row {
-    display: flex; align-items: center; gap: 10px; padding: 8px 11px;
-    border: 1px solid var(--line); border-radius: 10px; margin-bottom: 7px;
-    cursor: pointer; transition: .15s; background: #fff;
-  }
-  .pred-row:hover { border-color: #c7cbf4; }
-  .pred-row.active { border-color: var(--accent); background: #eef2ff; }
-  .pred-row .lbl { flex: 1; font-size: 13.5px; font-weight: 600; }
-  .pred-row .lbl small { color: var(--muted); font-weight: 400; font-size: 12px; }
-  .pred-row .pct { font-size: 13px; color: var(--accent); font-weight: 700; }
-  .bar { height: 5px; background: #eef0f3; border-radius: 3px; overflow: hidden; margin-top: 4px; }
-  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #8b5cf6); border-radius: 3px; }
-
-  /* 搜索参数 */
-  .filters { margin-top: 14px; display: flex; flex-direction: column; gap: 9px; }
-  .filters label { font-size: 12px; color: var(--muted); margin-bottom: -5px; }
-  .filters input, .filters select {
-    width: 100%; padding: 10px 12px; border: 1px solid var(--line);
-    border-radius: 10px; font-size: 14px; outline: none; background: #fff; color: var(--ink);
-  }
-  .filters input:focus, .filters select:focus { border-color: var(--accent); }
-
-  .btn {
-    width: 100%; padding: 12px; border: none; border-radius: 11px;
-    background: var(--ink); color: #fff; font-size: 15px; font-weight: 600;
-    cursor: pointer; transition: .2s; margin-top: 6px;
-  }
-  .btn:hover { background: #14171f; }
-  .btn:disabled { background: #b8c4e0; cursor: not-allowed; }
-  .hint { font-size: 11.5px; color: var(--muted); margin-top: 11px; line-height: 1.6; }
-
-  /* 地图 */
-  #map { width: 100%; height: 420px; border-radius: 14px; border: 1px solid var(--line); }
-  .map-wrap { position: relative; }
-  #mapStatus {
-    position: absolute; bottom: 12px; left: 12px; background: #fff; border-radius: 8px;
-    padding: 6px 10px; font-size: 12px; color: var(--muted); box-shadow: var(--shadow); display: none;
-  }
-
-  /* 结果 */
-  .results { margin-top: 18px; }
-  .results h2 { font-size: 15px; margin-bottom: 12px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 13px; }
+  /* 结果列表 */
+  .results { display: none; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
   .card { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; transition: .15s; }
   .card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
-  .card img { width: 100%; height: 140px; object-fit: cover; background: #eef0f3; display: block; }
-  .card .ph { height: 140px; background: #eef0f3; display: flex; align-items: center; justify-content: center; color: #9aa1ab; font-size: 13px; }
-  .card .body { padding: 11px 12px; }
-  .card .name { font-size: 13.5px; font-weight: 600; margin-bottom: 4px; line-height: 1.35; }
+  .card img { width: 100%; height: 150px; object-fit: cover; background: #eef0f3; display: block; }
+  .card .ph { height: 150px; background: #eef0f3; display: flex; align-items: center; justify-content: center; color: #9aa1ab; font-size: 13px; }
+  .card .body { padding: 12px 13px; }
+  .card .name { font-size: 14px; font-weight: 600; margin-bottom: 4px; line-height: 1.35; }
   .card .addr { font-size: 12px; color: var(--muted); margin-bottom: 7px; line-height: 1.4; }
   .card .coord { font-size: 11px; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
   .card .rating { font-size: 12px; color: #f59e0b; margin-top: 4px; }
-  .card a { display: inline-block; margin-top: 7px; font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 600; }
+  .card a { display: inline-block; margin-top: 8px; font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 600; }
   .card a:hover { text-decoration: underline; }
 
-  .empty { text-align: center; color: var(--muted); padding: 36px 0; font-size: 14px; }
-  .spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -3px; margin-right: 6px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty { text-align: center; color: var(--muted); padding: 20px 0; font-size: 14px; }
   .error { background: #fff1f0; border: 1px solid #ffccc7; color: #cf1322; padding: 12px 14px; border-radius: 10px; font-size: 13px; margin-top: 12px; display: none; }
 
-  footer { text-align: center; margin-top: 30px; font-size: 12.5px; color: #9ca3af; line-height: 1.9; }
+  /* 隐藏地图（PlacesService 需要一个 map 实例，但不展示） */
+  #map { position: absolute; left: -9999px; top: 0; width: 400px; height: 400px; }
+
+  footer { text-align: center; margin-top: 24px; font-size: 12.5px; color: #9ca3af; line-height: 1.9; }
   footer a { color: var(--muted); }
 </style>
 </head>
@@ -155,7 +107,7 @@
   <header>
     <div class="logo"><span class="dot"></span>image search · CLIP · Google Maps</div>
     <h1>📍 以图搜地点</h1>
-    <p>上传一张照片，AI 用 CLIP 视觉模型识别场景，自动在 Google 地图搜索相似地点<br>返回坐标与实景照片（首次使用需在浏览器里下载约 150MB 的量化模型）</p>
+    <p>上传一张照片，AI 用 CLIP 视觉模型识别场景，自动在 Google 地图搜索相似地点<br>返回匹配度最高的 3 个真实地点（坐标与实景照片）</p>
     <div class="nav">
       <a href="./index.html">📚 深度学习闪卡</a>
       <a href="./baby.html">🍼 宝宝 First Words</a>
@@ -164,61 +116,33 @@
     </div>
   </header>
 
-  <div class="cols">
-    <!-- 左栏：上传 + 识别 + 参数 -->
-    <div>
-      <div class="panel">
-        <h2>① 上传图片 <span class="tag">Deep Learning</span></h2>
-
-        <div class="drop" id="drop">
-          <div class="icon">🖼️</div>
-          <div class="main">点击或拖拽图片到此处</div>
-          <div class="sub">支持 JPG / PNG，模型在浏览器本地识别场景</div>
-          <input type="file" id="fileInput" accept="image/*" />
-        </div>
-        <div id="preview"><img id="previewImg" alt="预览" /></div>
-
-        <div id="modelBox"></div>
-
-        <div id="preds" style="display:none">
-          <h2>识别结果 Top 3（点击切换搜索场景）</h2>
-          <div id="predList"></div>
-        </div>
-
-        <div class="filters">
-          <h2>② 搜索参数（可选）</h2>
-          <label>位置 / 城市（可选，如 深圳 或 22.54,114.05）</label>
-          <input type="text" id="locInput" placeholder="限定搜索范围，留空则全球搜索" />
-          <label>搜索半径（米，配合位置使用；城市名未填则默认 50km）</label>
-          <input type="number" id="radiusInput" placeholder="如 5000（100~50000）" min="100" max="50000" step="100" />
-        </div>
-
-        <button class="btn" id="searchBtn" disabled>🔍 搜索相似地点</button>
-        <div class="error" id="errBox"></div>
-        <div class="hint">💡 上传图片 → CLIP 本地识别场景 → 映射为 Google 搜索词 → 返回地点坐标与实景照片。填「位置」（城市名或坐标）可限定范围并返回更多地点；留空则全球搜索（约 20 条）。Google 服务需能访问外网。</div>
-      </div>
+  <!-- 上传 -->
+  <div class="panel">
+    <h2>① 上传图片 <span class="tag">Deep Learning</span></h2>
+    <div class="drop" id="drop">
+      <div class="icon">🖼️</div>
+      <div class="main">点击或拖拽图片到此处</div>
+      <div class="sub">支持 JPG / PNG，模型在浏览器本地识别场景</div>
+      <input type="file" id="fileInput" accept="image/*" />
     </div>
-
-    <!-- 右栏：地图 + 结果 -->
-    <div>
-      <div class="panel">
-        <h2>③ 相似地点地图 <span class="tag" id="countTag">0 个结果</span></h2>
-        <div class="map-wrap">
-          <div id="map"></div>
-          <div id="mapStatus"></div>
-        </div>
-      </div>
-      <div class="panel results">
-        <h2>④ 结果列表 <span class="tag" id="queryTag">等待搜索</span></h2>
-        <div class="grid" id="resultGrid"></div>
-        <div class="empty" id="emptyBox">上传图片并点击「搜索相似地点」开始</div>
-      </div>
-    </div>
+    <div id="preview"><img id="previewImg" alt="预览" /></div>
+    <div id="modelBox"></div>
+    <div class="error" id="errBox"></div>
   </div>
+
+  <!-- 结果列表（唯一结果展示） -->
+  <div class="panel results" id="resultsPanel">
+    <h2>结果列表 <span class="tag" id="queryTag"></span></h2>
+    <div class="grid" id="resultGrid"></div>
+    <div class="empty" id="emptyBox"></div>
+  </div>
+
+  <!-- 隐藏地图，仅供 PlacesService 使用 -->
+  <div id="map"></div>
 
   <footer>
     场景识别：OpenAI CLIP（ViT-B/32，浏览器端量化推理）&nbsp;·&nbsp; 地点检索：Google Maps Places<br>
-    完整后端版（含更稳健的搜索与分页）见 <a href="https://github.com/litazhu/my-website/tree/main/image-search" target="_blank">image-search/</a> 目录
+    完整后端版见 <a href="https://github.com/litazhu/my-website/tree/main/image-search" target="_blank">image-search/</a> 目录
   </footer>
 </div>
 
@@ -250,14 +174,11 @@ const KEY = "AIzaSyAUkIckY9rhvZ_A3MAFhahs5SomNOvuV2E";
 
 /* ===== 状态 ===== */
 let classifier = null;      // Transformers.js 零样本分类 pipeline
-let map = null, markers = [], service = null, geocoder = null;
+let service = null;         // Google PlacesService（挂在隐藏地图上）
 let currentDataURL = null;  // 图片 dataURL（供 CLIP 与预览）
-let predictions = [];
-let activeLabel = null;
-let nextPageToken = null;   // nearbySearch 分页
-let collectedPlaces = [];   // 累计结果
 let mapReady = false;       // Google Maps JS API 是否就绪
-let autoSearchQueued = false; // 识别完成但地图未就绪时，标记待自动搜索
+let autoSearchQueued = false;
+let activeLabel = null;
 
 const $ = id => document.getElementById(id);
 
@@ -312,138 +233,59 @@ function handleFile(f) {
     $("previewImg").src = currentDataURL;
     $("preview").style.display = "block";
     $("errBox").style.display = "none";
-    $("searchBtn").disabled = false;
+    $("resultsPanel").style.display = "none";
     recognize();
   };
   reader.readAsDataURL(f);
 }
 
-/* ===== 场景识别（浏览器端 CLIP） ===== */
+/* ===== 场景识别（浏览器端 CLIP，内部用于确定搜索词） ===== */
 async function recognize() {
-  $("preds").style.display = "none";
   try {
     await ensureModel();
     const out = await classifier(currentDataURL, LABELS);
-    predictions = out.map(o => {
-      const en = o.label;
-      return { label: LABEL_ZH[en] || en, label_en: en, prob: o.score };
-    });
-    activeLabel = predictions[0].label_en;
-    renderPreds();
+    const top = out[0];
+    activeLabel = top.label;
     triggerSearch();
   } catch (e) {
     showError("识别失败：" + (e.message || e));
   }
 }
 
-function renderPreds() {
-  if (!predictions.length) return;
-  $("preds").style.display = "block";
-  const list = $("predList");
-  list.innerHTML = "";
-  predictions.slice(0, 3).forEach(p => {
-    const row = document.createElement("div");
-    row.className = "pred-row" + (p.label_en === activeLabel ? " active" : "");
-    row.innerHTML = `
-      <div style="flex:1">
-        <div class="lbl">${escapeHtml(p.label)} <small>${escapeHtml(p.label_en)}</small></div>
-        <div class="bar"><i style="width:${(p.prob*100).toFixed(1)}%"></i></div>
-      </div>
-      <div class="pct">${(p.prob*100).toFixed(1)}%</div>`;
-    row.addEventListener("click", () => {
-      if (p.label_en === activeLabel) return;
-      activeLabel = p.label_en;
-      renderPreds();
-      triggerSearch();
-    });
-    list.appendChild(row);
-  });
-}
-
-/* ===== 搜索（Google Maps JS API PlacesService） ===== */
-$("searchBtn").addEventListener("click", doSearch);
-
+/* ===== 搜索（Google PlacesService textSearch，取匹配度最高的 3 个） ===== */
 function triggerSearch() {
   if (!currentDataURL) return;
   if (mapReady) doSearch();
   else autoSearchQueued = true;
 }
 
-async function doSearch() {
+function doSearch() {
   if (!currentDataURL) { showError("请先上传图片"); return; }
-  const btn = $("searchBtn");
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>搜索中…';
-  $("errBox").style.display = "none";
-  const q = activeLabel || (predictions[0] ? predictions[0].label_en : "");
-  const loc = $("locInput").value.trim();
-  const radius = parseInt($("radiusInput").value) || null;
+  const box = $("modelBox");
+  box.className = "";
+  box.classList.add("loading");
+  box.innerHTML = `<strong>🔍 正在搜索「${escapeHtml(LABEL_ZH[activeLabel] || activeLabel)}」的相似地点…</strong>`;
+  const q = activeLabel;
 
-  try {
-    const results = await searchPlaces(q, loc, radius);
-    $("queryTag").textContent = "搜索词：" + q;
-    renderResults(results);
-  } catch (err) {
-    showError(err.message || String(err));
-  } finally {
-    btn.disabled = false; btn.innerHTML = "🔍 搜索相似地点";
-  }
-}
-
-function searchPlaces(query, loc, radius) {
-  return new Promise(async (resolve, reject) => {
-    if (!service || !map) { reject(new Error("地图尚未加载完成")); return; }
-    collectedPlaces = [];
-    nextPageToken = null;
-
-    // 有位置：地理编码 → 附近搜索（可翻页到 60）
-    if (loc) {
-      let center = null;
-      if (loc.includes(",")) {
-        const [a, b] = loc.split(",");
-        const lat = parseFloat(a), lng = parseFloat(b);
-        if (!isNaN(lat) && !isNaN(lng)) center = { lat, lng };
-      }
-      if (!center) {
-        try {
-          center = await new Promise((res, rej) => {
-            geocoder.geocode({ address: loc }, (results, status) => {
-              if (status === "OK" && results[0]) res(results[0].geometry.location.toJSON());
-              else rej(new Error("无法定位「" + loc + "」，请检查城市名或改用坐标"));
-            });
-          });
-        } catch (e) { reject(e); return; }
-      }
-      const req = { location: center, radius: clampRadius(radius) || 50000, keyword: query };
-      nearbyPage(req, resolve, reject);
-      return;
-    }
-
-    // 无位置：文本搜索（约 20 条）
-    service.textSearch({ query }, (results, status) => {
-      if (status === "OK") resolve(formatResults(results));
-      else if (status === "ZERO_RESULTS") resolve([]);
-      else reject(new Error("Google Places 搜索失败：" + status + "（宽泛词可能间歇性无结果，可尝试加「位置」限定）"));
-    });
-  });
-}
-
-function nearbyPage(req, resolve, reject) {
-  service.nearbySearch(req, (results, status, pagination) => {
+  service.textSearch({ query: q }, (results, status) => {
     if (status === "OK") {
-      collectedPlaces = collectedPlaces.concat(results);
-      if (pagination && pagination.hasNextPage && collectedPlaces.length < 60) {
-        nextPageToken = pagination.nextPageToken;
-        // nextPageToken 需约 2 秒生效
-        setTimeout(() => {
-          pagination.nextPage();
-        }, 2000);
-        return;
-      }
-      resolve(formatResults(collectedPlaces));
+      const top3 = formatResults(results).slice(0, 3);
+      $("queryTag").textContent = "搜索词：" + q;
+      renderResults(top3);
+      box.className = "";
+      box.classList.add("ready");
+      box.innerHTML = `✅ 已找到 ${top3.length} 个最相似地点`;
     } else if (status === "ZERO_RESULTS") {
-      resolve([]);
+      $("queryTag").textContent = "搜索词：" + q;
+      renderResults([]);
+      box.className = "";
+      box.classList.add("ready");
+      box.innerHTML = "⚠️ 未找到匹配地点，请换一张更清晰的场景照片试试";
     } else {
-      reject(new Error("附近搜索失败：" + status));
+      showError("Google Places 搜索失败：" + status + "（需能访问 Google 服务）");
+      box.className = "";
+      box.classList.add("error");
+      box.innerHTML = "❌ 搜索失败：" + escapeHtml(status);
     }
   });
 }
@@ -464,36 +306,15 @@ function formatResults(results) {
   });
 }
 
-function clampRadius(r) {
-  if (!r) return null;
-  return Math.max(100, Math.min(r, 50000));
-}
-
-/* ===== 渲染结果 ===== */
+/* ===== 渲染结果（仅 Top 3 地点卡片） ===== */
 function renderResults(places) {
-  $("countTag").textContent = places.length + " 个结果";
+  $("resultsPanel").style.display = "block";
   const grid = $("resultGrid");
   grid.innerHTML = "";
-  $("emptyBox").style.display = places.length ? "none" : "block";
-  if (!places.length) $("emptyBox").textContent = "未找到匹配地点";
-  clearMarkers();
-  const bounds = new google.maps.LatLngBounds();
-  places.forEach(p => {
-    grid.appendChild(buildCard(p));
-    if (p.lat != null && p.lng != null) {
-      const pos = { lat: p.lat, lng: p.lng };
-      const m = new google.maps.Marker({ position: pos, map, title: p.name });
-      m.addListener("click", () => {
-        new google.maps.InfoWindow({ content: `<strong>${escapeHtml(p.name)}</strong><br>${escapeHtml(p.address)}` }).open(map, m);
-      });
-      markers.push(m);
-      bounds.extend(pos);
-    }
-  });
-  if (markers.length) {
-    map.fitBounds(bounds);
-    if (markers.length === 1) map.setZoom(14);
-  }
+  const empty = $("emptyBox");
+  empty.style.display = places.length ? "none" : "block";
+  if (!places.length) empty.textContent = "未找到匹配地点";
+  places.forEach(p => grid.appendChild(buildCard(p)));
 }
 
 function buildCard(p) {
@@ -513,26 +334,16 @@ function buildCard(p) {
   return card;
 }
 
-function clearMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
-
 function showError(msg) { const b = $("errBox"); b.textContent = "⚠️ " + msg; b.style.display = "block"; }
 function escapeHtml(s) { return (s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-/* ===== 地图初始化 ===== */
+/* ===== 地图初始化（隐藏地图，仅供 PlacesService 使用） ===== */
 window.initMap = function () {
-  map = new google.maps.Map($("map"), { center: { lat: 35, lng: 105 }, zoom: 3, mapTypeControl: true });
+  const map = new google.maps.Map($("map"), { center: { lat: 0, lng: 0 }, zoom: 2 });
   service = new google.maps.places.PlacesService(map);
-  geocoder = new google.maps.Geocoder();
   mapReady = true;
   if (autoSearchQueued) { autoSearchQueued = false; doSearch(); }
 };
-</script>
-<script>
-  if (!window.google) {
-    const st = document.getElementById("mapStatus");
-    st.style.display = "block";
-    st.textContent = "⚠️ Google Maps JS API 未加载（网络受限或密钥失效），仍可上传图片识别场景";
-  }
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUkIckY9rhvZ_A3MAFhahs5SomNOvuV2E&libraries=places&callback=initMap"></script>
 </body>
