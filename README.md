@@ -7,14 +7,14 @@
 - 📚 深度学习闪卡 · <https://litazhu.github.io/my-website/>
 - 🍼 宝宝 First Words · <https://litazhu.github.io/my-website/baby.html>
 - 🗣️ 宝宝说 · 听音识图 · <https://litazhu.github.io/my-website/talk.html>
-- 🖼️ 场景识别 · <https://litazhu.github.io/my-website/image-search.html>
+- 📍 以图搜地点 · <https://litazhu.github.io/my-website/image-search.html>
 
-## 场景识别
+## 以图搜地点
 
-上传一张照片，浏览器本地用 **CLIP（ViT-B/32）** 做零样本场景识别，展示最可能的 Top 3 场景类别。
+上传一张照片，浏览器本地用 **CLIP（ViT-B/32）** 做零样本场景识别，展示最可能的 Top 3 场景，并自动在 Google 地图搜索相似地点，返回坐标与实景照片。
 
-- 纯前端实现：CLIP 推理用 [Transformers.js](https://github.com/xenova/transformers.js) 在浏览器端运行（首次使用需下载约 150MB 量化权重），图片不会上传到服务器。
-- 完整后端版（FastAPI + PyTorch CLIP + Google Maps Places API，支持搜相似地点与分页）见 [`image-search/`](./image-search/) 目录。
+- 纯前端实现：CLIP 推理用 [Transformers.js](https://github.com/xenova/transformers.js) 在浏览器端运行（首次使用需下载约 150MB 量化权重），地点检索用 Google Maps JS API。
+- 完整后端版（FastAPI + PyTorch CLIP + Places API，支持更稳健的分页搜索）见 [`image-search/`](./image-search/) 目录。
 
 ## 深度学习闪卡体验
 
